@@ -38,4 +38,8 @@ public class Player {
         return true;
     }
 
+    public int getInput(Board board, StdIn inputter){
+        return inputter.readInt();
+    }
+
 }

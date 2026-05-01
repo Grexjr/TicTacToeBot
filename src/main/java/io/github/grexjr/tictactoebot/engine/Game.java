@@ -1,5 +1,7 @@
 package io.github.grexjr.tictactoebot.engine;
 
+import io.github.grexjr.tictactoebot.bot.Bot;
+
 public class Game {
 
     private Board gameBoard;
@@ -15,7 +17,7 @@ public class Game {
         this.players = new Player[2];
         this.input = new StdIn();
         players[0] = new Player('X');
-        players[1] = new Player('O');
+        players[1] = new Bot('O');
 
         isGameOver = false;
         whoWon = ' ';
@@ -117,7 +119,7 @@ public class Game {
 
                 do {
                     System.out.print("Input a square from 1-9 (numbered from top left) -> ");
-                } while (!p.playTurn(gameBoard, input.readInt() - 1));
+                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input) - 1));
 
                 whoWon = checkWin();
                 if(whoWon != 'u' && whoWon != ' '){
