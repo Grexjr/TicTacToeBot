@@ -30,6 +30,6 @@ bin/
 .DS_Store
 
 ### CUSTOM ###
-TODO.txt
+*.txt
 *.xml
 *.iml

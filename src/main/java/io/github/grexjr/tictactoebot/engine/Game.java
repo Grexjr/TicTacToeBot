@@ -2,7 +2,7 @@ package io.github.grexjr.tictactoebot.engine;
 
 public class Game {
 
-    private Grid gameGrid;
+    private Board gameBoard;
     private Player[] players;
     private StdIn input;
 
@@ -11,7 +11,7 @@ public class Game {
 
 
     public Game(){
-        this.gameGrid = new Grid();
+        this.gameBoard = new Board();
         this.players = new Player[2];
         this.input = new StdIn();
         players[0] = new Player('X');
@@ -22,84 +22,118 @@ public class Game {
     }
 
     /// Mainly for testing
-    public Game(Grid grid){
+    public Game(Board board){
         this();
-        this.gameGrid = grid;
+        this.gameBoard = board;
     }
 
-    //TODO: refactor this to make it cleaner
+    public void setGameBoard(Board board) { gameBoard = board; }
+
+    /**
+     * Checks winning conditions based on indices of chars
+     * TODO: can definitely improve this in terms of efficiency and readability
+     * TODO: Remove redundant loops, definitely find a more efficient way to check wins
+     * TODO: Refactor, loops are hardcoded but just pretending to be loops
+     * @return The winning character (blank space for default of no winner)
+     */
+    public char checkWin(){
+        char[] grid = gameBoard.getRawGrid();
+        // TODO: Can I combine these two for loops?
+        // CHECK #1: ROWS
+        // Checks every row (so every 3rd index, 0, 3, 6)
+        for(int i = 0; i < grid.length; i += 3){
+            // If blank space, exit loop early
+            if(grid[i] == ' ') continue;
+            // Checks its immediate neighbor; if not the same, continues on
+            if(grid[i] != grid[i+1]) continue;
+            // If that matches, checks if next neighbor is the same
+            if(grid[i] != grid[i+2]) continue;
+            // If both match, then return the character -- we have a winner!
+            return grid[i];
+        }
+        // CHECK #2: COLUMNS
+        // Checks every column (so every index up to 3)
+        for(int i = 0; i < 3; i++){
+            // If blank space, exit loop early
+            if(grid[i] == ' ') continue;
+            // Checks neighbor (i + 3)
+            // If no match, continue to next check
+            if(grid[i] != grid[i+3]) continue;
+            // If no match on one next down, then continue to next check
+            if(grid[i] != grid[i+6]) continue;
+            // If both match, return character -- we have a winner!
+            return grid[i];
+        }
+        // CHECK #3: DIAGONALS
+        // Only need to check the two corners, and for both it's the same; index 4 is center of grid
+        for(int i = 0; i < grid.length; i += 6){
+            // If blank space, exit loop early
+            if(grid[i] == ' ') continue;
+            // First check, which both look at: i = 4; if no match, continue on
+            if(grid[i] != grid[4]) continue;
+            // First, the 0 check, which checks bottom right
+            if(i == 0){
+                // If not a match, continue on
+                if(grid[i] != grid[8]) continue;
+                // If a match, return character -- we have a winner!
+                return grid[i];
+            }
+            // Next, the 6 check, which checks top right
+            if(i == 6){
+                // If not a match, continue on
+                if(grid[i] != grid[2]) continue;
+                // If a match, return character -- we have a winner!
+                return grid[i];
+            }
+        }
+
+        boolean hasEmptySpace = false;
+
+        // Check if there are any unfilled spaces
+        for (char c : grid) {
+            // If a space is found, we break and return default value
+            if (c == ' ') {
+                hasEmptySpace = true;
+                break;
+            }
+        }
+
+        if(hasEmptySpace) return ' ';
+
+        // The non-win, non-draw case: blank space return
+        return 'u';
+
+        //TODO: Maybe instead of caller deciding, we have a check here if the grid space is a blank space
+    }
+
     public void runGame(){
-        gameGrid.printGrid();
+
         while(!isGameOver){
-            for(Player player : players){
-                System.out.println(player.getSymbol() +"'s turn!");
 
-                System.out.print("Input a row -> ");
-                // Minus one so grid is 1-indexed
-                int row = input.readInt() - 1;
-                System.out.print("Input a column -> ");
-                // Minus one so grid is 1-indexed
-                int col = input.readInt() - 1;
-
-                while(!player.playTurn(gameGrid,row,col)){
-                    System.out.println("Invalid move!");
-                    System.out.print("Input a row -> ");
-                    // Minus one so grid is 1-indexed
-                    row = input.readInt() - 1;
-                    System.out.print("Input a column -> ");
-                    // Minus one so grid is 1-indexed
-                    col = input.readInt() - 1;
-                }
-
+            for(Player p : players){
+                gameBoard.printGrid();
                 System.out.println();
-                System.out.println("Player put " + player.getSymbol() + " at " + (row + 1) + "," + (col + 1));
+                System.out.println(p.getSymbol() + "'s turn!");
 
-                gameGrid.printGrid();
+                do {
+                    System.out.print("Input a square from 1-9 (numbered from top left) -> ");
+                } while (!p.playTurn(gameBoard, input.readInt() - 1));
 
-                char winner = checkWin();
-
-                if(checkWin() != ' '){
-                    System.out.println(winner + " has won!");
+                whoWon = checkWin();
+                if(whoWon != 'u' && whoWon != ' '){
+                    System.out.println(whoWon + " has won!");
+                    gameBoard.printGrid();
                     isGameOver = true;
                     break;
                 }
+                if (whoWon == 'u'){
+                    System.out.println("Game is a draw!");
+                    gameBoard.printGrid();
+                    isGameOver = true;
+                    break;
+                } // else do nothing and continue
             }
         }
     }
-
-    /// Returns space if no winner, or if there are 3 spaces in a row somewhere; thus, need to use this always in a
-    /// conditional that checks if the result returns 'x', 'o', or ' '. If the last, then don't do anything with it.
-    public char checkWin(){
-        // Check rows
-        for(int i = 0; i < gameGrid.getRawGrid().length; i++){
-            if(gameGrid.getRawGrid()[i][0] == gameGrid.getRawGrid()[i][1]
-                    && gameGrid.getRawGrid()[i][1] == gameGrid.getRawGrid()[i][2]){
-                return gameGrid.getRawGrid()[i][0];
-            }
-        }
-        // Check columns
-        for(int j = 0; j < gameGrid.getRawGrid()[0].length; j++){
-            if(gameGrid.getRawGrid()[0][j] == gameGrid.getRawGrid()[1][j]
-                    && gameGrid.getRawGrid()[1][j] == gameGrid.getRawGrid()[2][j]){
-                return gameGrid.getRawGrid()[0][j];
-            }
-        }
-        // Check descending diagonal
-        if(gameGrid.getRawGrid()[0][0] == gameGrid.getRawGrid()[1][1]
-                && gameGrid.getRawGrid()[1][1] == gameGrid.getRawGrid()[2][2]){
-            return gameGrid.getRawGrid()[0][0];
-        }
-        // Check ascending diagonal
-        if(gameGrid.getRawGrid()[2][0] == gameGrid.getRawGrid()[1][1]
-                && gameGrid.getRawGrid()[1][1] == gameGrid.getRawGrid()[0][2]){
-            return gameGrid.getRawGrid()[2][0];
-        }
-        // Return space to show no character has yet won
-        return ' ';
-    }
-
-
-
-
 
 }
