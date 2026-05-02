@@ -1,6 +1,9 @@
 package io.github.grexjr.tictactoebot.engine;
 
 import io.github.grexjr.tictactoebot.bot.Bot;
+import io.github.grexjr.tictactoebot.bot.RandomBot;
+
+import java.util.Random;
 
 public class Game {
 
@@ -16,8 +19,15 @@ public class Game {
         this.gameBoard = new Board();
         this.players = new Player[2];
         this.input = new StdIn();
-        players[0] = new Player('X');
-        players[1] = new Bot('O');
+        // Randomize who gets what symbol
+        boolean rand = new Random().nextBoolean();
+        if(rand){
+            players[0] = new Player('X');
+            players[1] = new RandomBot('O');
+        } else {
+            players[0] = new RandomBot('X');
+            players[1] = new Player('O');
+        }
 
         isGameOver = false;
         whoWon = ' ';
@@ -118,7 +128,9 @@ public class Game {
                 System.out.println(p.getSymbol() + "'s turn!");
 
                 do {
-                    System.out.print("Input a square from 1-9 (numbered from top left) -> ");
+                    if(!(p instanceof Bot)){
+                        System.out.print("Input a square from 1-9 (numbered from top left) -> ");
+                    }
                 } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input) - 1));
 
                 whoWon = checkWin();
