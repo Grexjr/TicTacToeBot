@@ -1,6 +1,7 @@
 package io.github.grexjr.tictactoebot.engine;
 
 import io.github.grexjr.tictactoebot.bot.Bot;
+import io.github.grexjr.tictactoebot.bot.HeuristicsBot;
 import io.github.grexjr.tictactoebot.bot.RandomBot;
 
 import java.util.Random;
@@ -19,18 +20,40 @@ public class Game {
         this.gameBoard = new Board();
         this.players = new Player[2];
         this.input = new StdIn();
-        // Randomize who gets what symbol
-        boolean rand = new Random().nextBoolean();
-        if(rand){
-            players[0] = new Player('X');
-            players[1] = new RandomBot('O');
-        } else {
-            players[0] = new RandomBot('X');
-            players[1] = new Player('O');
+        // Randomize who gets what symbol & what bot
+        int rand = new Random().nextInt(0,4);
+        switch(rand){
+            case 0 -> {
+                players[0] = new Player('X');
+                players[1] = new RandomBot('O');
+                //System.out.println("Random bot!");
+            }
+            case 1 -> {
+                players[1] = new Player('O');
+                players[0] = new RandomBot('X');
+                //System.out.println("Random bot!");
+            }
+            case 2 -> {
+                players[0] = new Player('X');
+                players[1] = new HeuristicsBot('O');
+                //System.out.println("Heuristics Bot!");
+            }
+            case 3 -> {
+                players[1] = new Player('O');
+                players[0] = new HeuristicsBot('X');
+                //System.out.println("Heuristics Bot!");
+            }
         }
 
         isGameOver = false;
         whoWon = ' ';
+    }
+
+    // Mainly for testing to test bots against each other
+    public Game(Player player1, Player player2){
+        this();
+        players[0] = player1;
+        players[1] = player2;
     }
 
     /// Mainly for testing
@@ -38,6 +61,10 @@ public class Game {
         this();
         this.gameBoard = board;
     }
+
+    public boolean isGameOver() { return isGameOver; }
+
+    public char getWhoWon() { return whoWon; }
 
     public void setGameBoard(Board board) { gameBoard = board; }
 
@@ -128,6 +155,7 @@ public class Game {
                 System.out.println(p.getSymbol() + "'s turn!");
 
                 do {
+                    if(p instanceof Bot);
                     if(!(p instanceof Bot)){
                         System.out.print("Input a square from 1-9 (numbered from top left) -> ");
                     }
@@ -146,6 +174,31 @@ public class Game {
                     isGameOver = true;
                     break;
                 } // else do nothing and continue
+            }
+        }
+    }
+
+    ///  For testing
+    public void runTextlessGame(){
+        while(!isGameOver){
+
+            for(Player p : players){
+
+                do {
+                    if(!(p instanceof Bot)){
+                        System.out.print("Input a square from 1-9 (numbered from top left) -> ");
+                    }
+                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input) - 1));
+
+                whoWon = checkWin();
+                if(whoWon != 'u' && whoWon != ' '){
+                    isGameOver = true;
+                    break;
+                }
+                if (whoWon == 'u'){
+                    isGameOver = true;
+                    break;
+                }
             }
         }
     }
