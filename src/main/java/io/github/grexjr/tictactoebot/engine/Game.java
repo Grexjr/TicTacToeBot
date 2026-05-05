@@ -145,60 +145,43 @@ public class Game {
         //TODO: Maybe instead of caller deciding, we have a check here if the grid space is a blank space
     }
 
-    public void runGame(){
+    /**
+     * Runs the game.
+     * @param isSilent True for print statements, false for none. Useful for testing.
+     */
+    public void runGame(boolean isSilent){
 
         while(!isGameOver){
 
             for(Player p : players){
-                gameBoard.printGrid();
-                System.out.println();
-                System.out.println(p.getSymbol() + "'s turn!");
+                if(!isSilent){
+                    gameBoard.printGrid();
+                    System.out.println();
+                    System.out.println(p.getSymbol() + "'s turn!");
+                }
 
                 do {
-                    if(p instanceof Bot);
-                    if(!(p instanceof Bot)){
-                        System.out.print("Input a square from 1-9 (numbered from top left) -> ");
-                    }
+                    if(p instanceof Bot) continue;
+                    System.out.print("Input a square from 1-9 (numbered from top left) -> ");
                 } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input) - 1));
 
                 whoWon = checkWin();
                 if(whoWon != 'u' && whoWon != ' '){
-                    System.out.println(whoWon + " has won!");
-                    gameBoard.printGrid();
+                    if(!isSilent){
+                        System.out.println(whoWon + " has won!");
+                        gameBoard.printGrid();
+                    }
                     isGameOver = true;
                     break;
                 }
                 if (whoWon == 'u'){
-                    System.out.println("Game is a draw!");
-                    gameBoard.printGrid();
+                    if(!isSilent){
+                        System.out.println("Game is a draw!");
+                        gameBoard.printGrid();
+                    }
                     isGameOver = true;
                     break;
                 } // else do nothing and continue
-            }
-        }
-    }
-
-    ///  For testing
-    public void runTextlessGame(){
-        while(!isGameOver){
-
-            for(Player p : players){
-
-                do {
-                    if(!(p instanceof Bot)){
-                        System.out.print("Input a square from 1-9 (numbered from top left) -> ");
-                    }
-                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input) - 1));
-
-                whoWon = checkWin();
-                if(whoWon != 'u' && whoWon != ' '){
-                    isGameOver = true;
-                    break;
-                }
-                if (whoWon == 'u'){
-                    isGameOver = true;
-                    break;
-                }
             }
         }
     }

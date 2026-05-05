@@ -18,6 +18,7 @@ public class HeuristicsBot extends Bot {
     // ### A bot that uses heuristics to try and win (or draw) the game of tic-tac-toe
     public HeuristicsBot(char symbol){
         super(symbol);
+        this.name = "HeuristicsBot";
         winningIndex = -1;
         initMagicSquare();
     }

@@ -8,7 +8,10 @@ import java.util.Random;
 
 public class RandomBotTest extends Bot {
 
-    public RandomBotTest(char symbol){ super(symbol); }
+    public RandomBotTest(char symbol){
+        super(symbol);
+        this.name = "RandomBot";
+    }
 
     @Override
     public int getInput(Board board, StdIn input){

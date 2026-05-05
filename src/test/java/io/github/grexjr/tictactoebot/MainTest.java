@@ -6,6 +6,8 @@ import io.github.grexjr.tictactoebot.bot.RandomBot;
 import io.github.grexjr.tictactoebot.engine.Game;
 import io.github.grexjr.tictactoebot.engine.Board;
 import io.github.grexjr.tictactoebot.engine.StdIn;
+import io.github.grexjr.tictactoebot.testbots.HeuristicsBotCheckWin;
+import io.github.grexjr.tictactoebot.testbots.RandomBotTest;
 import org.junit.jupiter.api.*;
 
 import java.util.Random;
@@ -102,50 +104,76 @@ public class MainTest {
     @Test
     public void testHeuristicsCheckWinVersusRandom(){
         String fileName = "hBot_checkWin_v_rBot";
-
-        Random rand = new Random();
-        Game game;
-        int hBotXWins = 0;
-        int hBotOWins = 0;
-        int rBotXWins = 0;
-        int rBotOWins = 0;
-        int totalGames = 100000;
+        String testHeader = "HEURISTICS_CHECK_WIN_VERSUS_RANDOM_BOT";
+        HeuristicsBotCheckWin hBotCW = new HeuristicsBotCheckWin('x');
+        RandomBotTest rBotTest = new RandomBotTest('o');
+        int iterations = 100000;
         double expectedWinRate = 55;
 
+        runVersusTest(hBotCW,rBotTest,iterations,expectedWinRate,fileName,testHeader);
+    }
+
+
+
+
+
+    private void runVersusTest(Bot challenger, Bot defender, int totalGames, double expectedChallengerWinRate,
+                               String logFileName, String testHeader){
+        // Variables for wins and game amounts and expected values
+        int challengerXWins = 0;
+        int challengerOWins = 0;
+        int defenderXWins = 0;
+        int defenderOWins = 0;
+
         for(int iteration = 0; iteration < totalGames; iteration++){
-            HeuristicsBot hBotX = new HeuristicsBot('X');
-            HeuristicsBot hBotO = new HeuristicsBot('O');
-
-            RandomBot rBotX = new RandomBot('X');
-            RandomBot rBotO = new RandomBot('O');
-
-            boolean gameType = rand.nextBoolean();
-
-            if (gameType) {
-                game = new Game(hBotX, rBotO);
-                game.runTextlessGame();
-                if(game.getWhoWon() == hBotX.getSymbol()) hBotXWins++;
-                if(game.getWhoWon() == rBotO.getSymbol()) rBotOWins++;
+            if(iteration <= totalGames/2){
+                challenger.setSymbol('x');
+                defender.setSymbol('o');
+                char winner = runTestGame(challenger, defender);
+                if(winner == challenger.getSymbol()) challengerXWins++;
+                if(winner == defender.getSymbol()) defenderOWins++;
             } else {
-                game = new Game(rBotX, hBotO);
-                game.runTextlessGame();
-                if(game.getWhoWon() == rBotX.getSymbol()) rBotXWins++;
-                if(game.getWhoWon() == hBotO.getSymbol()) hBotOWins++;
+                defender.setSymbol('x');
+                challenger.setSymbol('o');
+                char winner = runTestGame(defender, challenger);
+                if(winner == defender.getSymbol()) defenderXWins++;
+                if(winner == challenger.getSymbol()) challengerOWins++;
             }
         }
 
-        int totalHBotWins = hBotXWins + hBotOWins;
-        int hBotLosses = rBotXWins + rBotOWins;
+        int totalChallengerWins = challengerXWins + challengerOWins;
+        int challengerLosses = defenderXWins + defenderOWins;
 
-        double winPercent = ((double) totalHBotWins / totalGames) * 100;
+        double winPercent = ((double) totalChallengerWins / totalGames) * 100;
 
+        // Print results
+        printTestResults(testHeader,totalGames,challengerXWins,challengerOWins,challengerLosses,winPercent,challenger);
+
+        // Write results to file
+        logTestResults(logFileName, testHeader, totalChallengerWins,totalGames,winPercent,challenger);
+
+        // Should probably win more than 55% of games -- pass condition
+        assertTrue(winPercent >= expectedChallengerWinRate);
+    }
+
+    private char runTestGame(Bot challenger, Bot defender){
+        Game game = new Game(challenger,defender);
+        // Runs a silent, printless game
+        game.runGame(true);
+
+        return game.getWhoWon();
+    }
+
+    private void printTestResults(String header, int totalGames, int challengerXWins,
+                                  int challengerOWins, int challengerLosses, double winPercent,
+                                  Bot challenger){
         // Display test information
-        System.out.println("RANDOM BOT VERSUS HEURISTICS BOT: ");
+        System.out.println(header);
         System.out.println("Total games played: " + totalGames);
-        System.out.println("Heuristic bot wins: " + totalHBotWins);
-        System.out.println("As x: " + hBotXWins + " | " + "As o: " + hBotOWins);
-        System.out.println("Heuristic bot losses: " + hBotLosses);
-        System.out.println("Heuristics bot win rate: " + winPercent);
+        System.out.println(challenger.getName() + " wins: " + (challengerXWins + challengerOWins));
+        System.out.println("As x: " + challengerXWins + " | " + "As o: " + challengerOWins);
+        System.out.println(challenger.getName() + " losses: " + challengerLosses);
+        System.out.println(challenger.getName() + " win rate: " + winPercent);
 
         // Create a visual bar
         int barSections = 100; // 100 bars
@@ -157,18 +185,15 @@ public class MainTest {
             else System.out.print("\u001B[31m" + "-" + "\u001B[0m");
         }
         System.out.println("]");
+    }
 
-        // Write results to file
-        TestLogger.logResult(fileName,"\n");
-        TestLogger.logResult(fileName,"RANDOM VS HEURISTICS_CHECK_WIN");
+    private void logTestResults(String fileName, String header, int challengerWins, int totalGames, double winPercent,
+                                Bot challenger){
+        TestLogger.logResult(fileName, "\n");
+        TestLogger.logResult(fileName,header);
         TestLogger.logResult(fileName,"Total games played: " + totalGames);
-        TestLogger.logResult(fileName, "Heuristic bot wins: " + totalHBotWins);
-        TestLogger.logResult(fileName,"As x: " + hBotXWins + " | " + "As o: " + hBotOWins);
-        TestLogger.logResult(fileName, "Heuristic bot losses: " + hBotLosses);
-        TestLogger.logResult(fileName, "Heuristics bot win rate: " + winPercent);
-
-        // Should probably win more than 55% of games -- pass condition
-        assertTrue(winPercent >= expectedWinRate);
+        TestLogger.logResult(fileName, challenger.getName() + " wins: " + challengerWins);
+        TestLogger.logResult(fileName, challenger.getName() + " win rate: " + winPercent);
     }
 
 }
