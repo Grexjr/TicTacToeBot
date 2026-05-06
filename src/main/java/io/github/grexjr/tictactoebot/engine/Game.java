@@ -16,7 +16,7 @@ public class Game {
     char whoWon;
 
 
-    public Game(){
+    public Game(boolean debug){
         this.gameBoard = new Board();
         this.players = new Player[2];
         this.input = new StdIn();
@@ -26,22 +26,30 @@ public class Game {
             case 0 -> {
                 players[0] = new Player('X');
                 players[1] = new RandomBot('O');
-                //System.out.println("Random bot!");
+                if(debug){
+                    System.out.println("Random bot!");
+                }
             }
             case 1 -> {
                 players[1] = new Player('O');
                 players[0] = new RandomBot('X');
-                //System.out.println("Random bot!");
+                if(debug){
+                    System.out.println("Random bot!");
+                }
             }
             case 2 -> {
                 players[0] = new Player('X');
                 players[1] = new HeuristicsBot('O');
-                //System.out.println("Heuristics Bot!");
+                if(debug){
+                    System.out.println("Heuristics Bot!");
+                }
             }
             case 3 -> {
                 players[1] = new Player('O');
                 players[0] = new HeuristicsBot('X');
-                //System.out.println("Heuristics Bot!");
+                if(debug){
+                    System.out.println("Heuristics Bot!");
+                }
             }
         }
 
@@ -51,14 +59,14 @@ public class Game {
 
     // Mainly for testing to test bots against each other
     public Game(Player player1, Player player2){
-        this();
+        this(false);
         players[0] = player1;
         players[1] = player2;
     }
 
     /// Mainly for testing
     public Game(Board board){
-        this();
+        this(false);
         this.gameBoard = board;
     }
 
@@ -154,6 +162,10 @@ public class Game {
         while(!isGameOver){
 
             for(Player p : players){
+                Player opponent = null;
+                if(p == players[0]) opponent = players[1];
+                if(p == players[1]) opponent = players[0];
+
                 if(!isSilent){
                     gameBoard.printGrid();
                     System.out.println();
@@ -163,7 +175,7 @@ public class Game {
                 do {
                     if(p instanceof Bot) continue;
                     System.out.print("Input a square from 1-9 (numbered from top left) -> ");
-                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input) - 1));
+                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input, opponent) - 1));
 
                 whoWon = checkWin();
                 if(whoWon != 'u' && whoWon != ' '){

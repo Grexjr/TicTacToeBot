@@ -1,6 +1,7 @@
 package io.github.grexjr.tictactoebot.bot;
 
 import io.github.grexjr.tictactoebot.engine.Board;
+import io.github.grexjr.tictactoebot.engine.Player;
 import io.github.grexjr.tictactoebot.engine.StdIn;
 
 import java.util.Random;
@@ -13,7 +14,7 @@ public class RandomBot extends Bot {
     }
 
     @Override
-    public int getInput(Board board, StdIn input){
+    public int getInput(Board board, StdIn input, Player opponent){
         return doRandomBrain(board);
     }
 

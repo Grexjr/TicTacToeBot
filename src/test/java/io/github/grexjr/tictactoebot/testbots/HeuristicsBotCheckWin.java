@@ -2,6 +2,7 @@ package io.github.grexjr.tictactoebot.testbots;
 
 import io.github.grexjr.tictactoebot.bot.Bot;
 import io.github.grexjr.tictactoebot.engine.Board;
+import io.github.grexjr.tictactoebot.engine.Player;
 import io.github.grexjr.tictactoebot.engine.StdIn;
 
 import java.util.Random;
@@ -53,7 +54,7 @@ public class HeuristicsBotCheckWin extends Bot {
     }
 
     @Override
-    public int getInput(Board board, StdIn input){
+    public int getInput(Board board, StdIn input, Player opponent){
         return doHeuristicsBrain(board);
     }
 

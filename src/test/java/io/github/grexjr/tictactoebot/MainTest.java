@@ -6,6 +6,7 @@ import io.github.grexjr.tictactoebot.bot.RandomBot;
 import io.github.grexjr.tictactoebot.engine.Game;
 import io.github.grexjr.tictactoebot.engine.Board;
 import io.github.grexjr.tictactoebot.engine.StdIn;
+import io.github.grexjr.tictactoebot.testbots.HeuristicsBotCheckBlock;
 import io.github.grexjr.tictactoebot.testbots.HeuristicsBotCheckWin;
 import io.github.grexjr.tictactoebot.testbots.RandomBotTest;
 import org.junit.jupiter.api.*;
@@ -88,15 +89,15 @@ public class MainTest {
         HeuristicsBot h_bot2 = new HeuristicsBot('o');
         // Run it 100 times to make sure its not just random
         for(int i = 0; i < 100; i++){
-            int botResult = h_bot1.getInput(board1, dummy_input);
+            int botResult = h_bot1.getInput(board1, dummy_input,new RandomBot('-'));
             assertEquals(3, botResult);
         }
         for(int i = 0; i < 100; i++){
-            int botResult = h_bot2.getInput(board2, dummy_input);
+            int botResult = h_bot2.getInput(board2, dummy_input,new RandomBot('-'));
             assertEquals(8, botResult);
         }
         for(int i = 0; i < 100; i++){
-            int botResult = h_bot1.getInput(board3, dummy_input);
+            int botResult = h_bot1.getInput(board3, dummy_input,new RandomBot('-'));
             assertEquals(5, botResult);
         }
     }
@@ -113,6 +114,30 @@ public class MainTest {
         runVersusTest(hBotCW,rBotTest,iterations,expectedWinRate,fileName,testHeader);
     }
 
+    @Test
+    public void testHeuristicsWinBlockVersusRandom(){
+        String fileName = "hBot_checkBlock_v_rBot";
+        String testHeader = "HEURISTICS_CHECK_BLOCK_VERSUS_RANDOM";
+        HeuristicsBotCheckBlock hBotCB = new HeuristicsBotCheckBlock('x');
+        RandomBotTest rBot = new RandomBotTest('o');
+        int iterations = 100000;
+        double expectedWinRate = 75;
+
+        runVersusTest(hBotCB,rBot,iterations,expectedWinRate,fileName,testHeader);
+    }
+
+    @Test
+    public void testHeuristicsWinVersusHeuristicsBlock(){
+        String fileName = "hBot_win_v_hBot_block";
+        String testHeader = "HEURISTICS_WIN_VERSUS_BLOCK";
+        HeuristicsBotCheckWin hBotCW = new HeuristicsBotCheckWin('x');
+        HeuristicsBotCheckBlock hBotCB = new HeuristicsBotCheckBlock('o');
+        int iterations = 100000;
+        double expectedWinRate = 55;
+
+        runVersusTest(hBotCB,hBotCW,iterations,expectedWinRate,fileName,testHeader);
+    }
+
 
 
 
@@ -124,6 +149,7 @@ public class MainTest {
         int challengerOWins = 0;
         int defenderXWins = 0;
         int defenderOWins = 0;
+        int draws = 0;
 
         for(int iteration = 0; iteration < totalGames; iteration++){
             if(iteration <= totalGames/2){
@@ -132,12 +158,14 @@ public class MainTest {
                 char winner = runTestGame(challenger, defender);
                 if(winner == challenger.getSymbol()) challengerXWins++;
                 if(winner == defender.getSymbol()) defenderOWins++;
+                if(winner == 'u') draws++;
             } else {
                 defender.setSymbol('x');
                 challenger.setSymbol('o');
                 char winner = runTestGame(defender, challenger);
                 if(winner == defender.getSymbol()) defenderXWins++;
                 if(winner == challenger.getSymbol()) challengerOWins++;
+                if(winner == 'u') draws++;
             }
         }
 
@@ -145,9 +173,11 @@ public class MainTest {
         int challengerLosses = defenderXWins + defenderOWins;
 
         double winPercent = ((double) totalChallengerWins / totalGames) * 100;
+        double drawPercent = ((double) draws / totalGames) * 100;
 
         // Print results
-        printTestResults(testHeader,totalGames,challengerXWins,challengerOWins,challengerLosses,winPercent,challenger);
+        printTestResults(testHeader,totalGames,challengerXWins,challengerOWins,challengerLosses,winPercent,
+                drawPercent,challenger);
 
         // Write results to file
         logTestResults(logFileName, testHeader, totalChallengerWins,totalGames,winPercent,challenger);
@@ -165,23 +195,26 @@ public class MainTest {
     }
 
     private void printTestResults(String header, int totalGames, int challengerXWins,
-                                  int challengerOWins, int challengerLosses, double winPercent,
+                                  int challengerOWins, int challengerLosses, double winPercent, double drawPercent,
                                   Bot challenger){
         // Display test information
         System.out.println(header);
         System.out.println("Total games played: " + totalGames);
         System.out.println(challenger.getName() + " wins: " + (challengerXWins + challengerOWins));
         System.out.println("As x: " + challengerXWins + " | " + "As o: " + challengerOWins);
+        System.out.println("Draws: " + (totalGames * (drawPercent / 100)));
         System.out.println(challenger.getName() + " losses: " + challengerLosses);
         System.out.println(challenger.getName() + " win rate: " + winPercent);
 
         // Create a visual bar
         int barSections = 100; // 100 bars
         int winBars = (int) (barSections * (winPercent/100));
+        int drawBars = (int) (barSections * (drawPercent/100));
 
         System.out.print("[");
         for(int i = 0; i < barSections; i++){
             if(i < winBars) System.out.print("\u001B[32m" + "-" + "\u001B[0m");
+            else if(i < (drawBars + winBars)) System.out.print("\u001B[37m" + "-" + "\u001B[0m");
             else System.out.print("\u001B[31m" + "-" + "\u001B[0m");
         }
         System.out.println("]");
