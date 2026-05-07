@@ -1,12 +1,13 @@
-package io.github.grexjr.tictactoebot.bot;
+package io.github.grexjr.tictactoebot.testbots;
 
+import io.github.grexjr.tictactoebot.bot.Bot;
 import io.github.grexjr.tictactoebot.engine.Board;
 import io.github.grexjr.tictactoebot.engine.Player;
 import io.github.grexjr.tictactoebot.engine.StdIn;
 
 import java.util.Random;
 
-public class HeuristicsBot extends Bot {
+public class HeuristicsBotWinningLanes extends Bot {
 
     // All rows, diagonals, columns add to 15
     // Use this for getting the values from board indices
@@ -17,7 +18,7 @@ public class HeuristicsBot extends Bot {
     private int moveIndex;
 
     // ### A bot that uses heuristics to try and win (or draw) the game of tic-tac-toe
-    public HeuristicsBot(char symbol){
+    public HeuristicsBotWinningLanes(char symbol){
         super(symbol);
         this.name = "HeuristicsBot";
         moveIndex = -1;
@@ -173,43 +174,108 @@ public class HeuristicsBot extends Bot {
         for(int i = 0; i < grid.length; i++){
             // Temporary variable for winning lines of specific square
             int tempWinningLines = 0;
+            boolean isOnDiagonal = false;
 
             // If occupied, continue on
             if(grid[i] != ' ') continue;
 
-            // Otherwise imagine what happens if you put symbol there
+            // Otherwise simulate putting your symbol there
+
+            // Check how many winning lines in row (indices are +1 and -1)
+            // Save a variable for the starting index of the row and column you are in
+            int rowStart = -1;
+            int colStart = -1;
+            int diagonalStart = -1;
+            // Save a variable for how many pieces in the queried geometry are yours and opponents
+            int neighbors = 0;
+            int enemies = 0;
+
 
             // Check which row & column you are in and if on diagonal
-            /* ROW CHECK:
-            Can just use modulus!
-            >if i < 3 (row 0), 0 - 0, 1 - 1, 2 - 2
-            >if i < 6 (row 3), 3 - 0, 4 - 1, 5 - 2
-            >if i < 8 (row 6), 6 - 0, 7 - 1, 8 - 2
-            */
-            int rowStart = i - (i % 3);
-            // COLUMN CHECK:
+            if(i < 3) {
+                rowStart = 0;
+            }
+            else if(i < 6) {
+                rowStart = 3;
+            }
+            else if(i < 9) {
+                rowStart = 6;
+            }
+            // Column check
             // Can just use modulus! since rows are +3; 0, 3, 6; 1, 4, 7; 2, 5, 8
-            int colStart = i % 3;
-            // DIAGONAL CHECK:
-            // on the evens!!!! mod 2!!!!
-            boolean isOnDiagonal = i % 2 == 0;
+            colStart = i % 3;
+            // Diagonal check; on the evens!!!! mod 2!!!!
+            // But need to check WHICH diagonal... 0,4,8 or 6,4,2
+            if(i % 2 == 0) isOnDiagonal = true;
+            if(isOnDiagonal) {// This means it is on the descending diagonal
+                if (i % 4 == 0) {
+                    // If not center, on descending diagonal; if on center, diagonal start = -1
+                    if(i != 4) {
+                        diagonalStart = 0;
+                    }
+                }
+                else { // i % 4 = 2
+                    diagonalStart = 2;
+                }
+            }
 
             // Check row
-            if(checkNeighbors(grid,opponentSymbol,rowStart,rowStart+2,1)) tempWinningLines++;
+            // <= because we want to check the last one too; i.e. j = 0, j = 1, j = 2 all need to be checked
+            for(int j = rowStart; j <= rowStart + 2; j++){
+                if(grid[j] == getSymbol()) neighbors++;
+                else if(grid[j] == opponentSymbol) enemies++;
+            }
+
+            // Now check if neighbors and enemies are 2 and 0 respectively (1 because piece is not there yet)
+            if(neighbors == 1 && enemies == 0){
+                tempWinningLines += 1;
+            }
+
+            // Reset neighbors and enemies for column check
+            neighbors = 0; enemies = 0;
 
             // Check column
-            if(checkNeighbors(grid,opponentSymbol,colStart,colStart+6,3)) tempWinningLines++;
+            // <= because we want to check last one too; k += 3 because rows are +3
+            for(int k = colStart; k <= colStart + 6; k += 3) {
+                if(grid[k] == getSymbol()) neighbors++;
+                if(grid[k] == opponentSymbol) enemies++;
+            }
+
+            // If the columns also have neighbors 2 and enemies 0, add it as a winning line
+            if(neighbors == 1 && enemies == 0){
+                tempWinningLines++;
+            }
+
+            // Reset neighbors and enemies for diagonal check
+            neighbors = 0; enemies = 0;
 
             // Check diagonals if it is on the diagonal
             if(isOnDiagonal){
                 // Do first diagonal (Ascending)
-                if(getDiagonalStartIndex(i) == -1 || getDiagonalStartIndex(i) == 0){
-                    if(checkNeighbors(grid,opponentSymbol,0,8,4)) tempWinningLines++;
+                if(diagonalStart == -1 || diagonalStart == 0){
+                    for(int w = 0; w <= 8; w += 4){
+                        if(grid[w] == getSymbol()) neighbors++;
+                        if(grid[w] == opponentSymbol) enemies++;
+                    }
                 }
 
+                // Add to temp winning lanes and reset values
+                if(neighbors == 1 && enemies == 0){
+                    tempWinningLines++;
+                }
+                neighbors = 0; enemies = 0;
+
                 // Do descending diagonal
-                if(getDiagonalStartIndex(i) == -1 || getDiagonalStartIndex(i) == 2){
-                    if(checkNeighbors(grid,opponentSymbol,2,6,2)) tempWinningLines++;
+                if(diagonalStart == -1 || diagonalStart == 2){
+                    for(int z = 2; z <= 6; z += 2){
+                        if(grid[z] == getSymbol()) neighbors++;
+                        if(grid[z] == opponentSymbol) enemies++;
+                    }
+                }
+
+                // Add to temp winning lanes
+                if(neighbors == 1 && enemies == 0){
+                    tempWinningLines++;
                 }
             }
 
@@ -223,40 +289,6 @@ public class HeuristicsBot extends Bot {
             }
         }
         // If you go through entire grid and find nothing, move index will be -1 still
-    }
-
-    private boolean checkNeighbors(char[] grid, char opponent, int start, int end, int additive){
-        int neighbors = 0;
-        int enemies = 0;
-
-        // Search through neighbors
-        // <= so we check the last index too
-        for(int i = start; i <= end; i += additive){
-            if(grid[i] == getSymbol()) neighbors++;
-            else if(grid[i] == opponent) enemies++;
-        }
-
-        // If there is one piece there, means this hypothetical would cause winning lanes
-        return neighbors == 1 && enemies == 0;
-    }
-
-    private int getDiagonalStartIndex(int i){
-        int diagonalStart = -1;
-
-        // Check which diagonal it is on
-        if (i % 4 == 0) {
-            // If not center and mod 4 == 0, then on descending diagonal, so start at 0
-            if(i != 4) {
-                diagonalStart = 0;
-            }
-        }
-        // Otherwise, start at 2, on ascending diagonal
-        else { // i % 4 = 2
-            diagonalStart = 2;
-        }
-
-        // If both, (i == 4) return -1
-        return diagonalStart;
     }
 
 }
