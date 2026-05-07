@@ -60,21 +60,30 @@ public class HeuristicsBot extends Bot {
     // ### THE BRAIN: run certain rules
     private int doHeuristicsBrain(Board board, Player opponent){
         char[] grid = board.getRawGrid();
-        // PRIORITY 1: Check if we can win, PRIORITY 2: check if we can block | (java goes left to right for conditions)
-        // TODO: Can probably combine the two check methods
-        if(checkWin(grid) || checkBlock(grid,opponent)){
-            // If so, get the index that lets us win based on what our winning value is
+
+        // PRIORITY 1: Check if we can win
+        if(checkWin(grid)){
             return moveIndex + 1;
         }
-
-        // Otherwise (for now) return a random value
-        Random rand = new Random();
-        // Random 1-9, if not blank then re rolls
-        int random = rand.nextInt(0,9);
-        while(board.getRawGrid()[random] != ' '){
-            random = rand.nextInt(0,9);
+        // PRIORITY 2: check if we can block
+        if(checkBlock(grid,opponent)){
+            return moveIndex + 1;
         }
-        return random + 1;
+        // PRIORITY 3: MAXIMIZE WINNING LANES
+        maximizeWinningLines(grid,opponent.getSymbol());
+
+        if(moveIndex == -1){// Otherwise (for now) return a random value
+            Random rand = new Random();
+            // Random 1-9, if not blank then re rolls
+            int random = rand.nextInt(0, 9);
+            while (board.getRawGrid()[random] != ' ') {
+                random = rand.nextInt(0, 9);
+            }
+
+            moveIndex = random + 1;
+        }
+
+        return moveIndex;
     }
 
     private boolean checkWin(char[] grid){
@@ -152,5 +161,133 @@ public class HeuristicsBot extends Bot {
         return false;
     }
 
+    // Move where you can maximize winning lines
+    private void maximizeWinningLines(char[] grid, char opponentSymbol){
+        // Set move index to blank (shouldn't matter because functions before it will change it)
+        moveIndex = -1;
+
+        // Variable for how many winning lines pass through square
+        int mostWinningLines = 0;
+
+        // Loop through all the array
+        for(int i = 0; i < grid.length; i++){
+            // Temporary variable for winning lines of specific square
+            int tempWinningLines = 0;
+            boolean isOnDiagonal = false;
+
+            // If occupied, continue on
+            if(grid[i] != ' ') continue;
+
+            // Otherwise simulate putting your symbol there
+
+            // Check how many winning lines in row (indices are +1 and -1)
+            // Save a variable for the starting index of the row and column you are in
+            int rowStart = -1;
+            int colStart = -1;
+            int diagonalStart = -1;
+            // Save a variable for how many pieces in the queried geometry are yours and opponents
+            int neighbors = 0;
+            int enemies = 0;
+
+
+            // Check which row & column you are in and if on diagonal
+            if(i < 3) {
+                rowStart = 0;
+            }
+            else if(i < 6) {
+                rowStart = 3;
+            }
+            else if(i < 9) {
+                rowStart = 6;
+            }
+            // Column check
+            // Can just use modulus! since rows are +3; 0, 3, 6; 1, 4, 7; 2, 5, 8
+            colStart = i % 3;
+            // Diagonal check; on the evens!!!! mod 2!!!!
+            // But need to check WHICH diagonal... 0,4,8 or 6,4,2
+            if(i % 2 == 0) isOnDiagonal = true;
+            if(isOnDiagonal) {// This means it is on the descending diagonal
+                if (i % 4 == 0) {
+                    // If not center, on descending diagonal; if on center, diagonal start = -1
+                    if(i != 4) {
+                        diagonalStart = 0;
+                    }
+                }
+                else { // i % 4 = 2
+                    diagonalStart = 2;
+                }
+            }
+
+            // Check row
+            // <= because we want to check the last one too; i.e. j = 0, j = 1, j = 2 all need to be checked
+            for(int j = rowStart; j <= rowStart + 2; j++){
+                if(grid[j] == getSymbol()) neighbors++;
+                else if(grid[j] == opponentSymbol) enemies++;
+            }
+
+            // Now check if neighbors and enemies are 2 and 0 respectively (1 because piece is not there yet)
+            if(neighbors == 1 && enemies == 0){
+                tempWinningLines += 1;
+            }
+
+            // Reset neighbors and enemies for column check
+            neighbors = 0; enemies = 0;
+
+            // Check column
+            // <= because we want to check last one too; k += 3 because rows are +3
+            for(int k = colStart; k <= colStart + 6; k += 3) {
+                if(grid[k] == getSymbol()) neighbors++;
+                if(grid[k] == opponentSymbol) enemies++;
+            }
+
+            // If the columns also have neighbors 2 and enemies 0, add it as a winning line
+            if(neighbors == 1 && enemies == 0){
+                tempWinningLines++;
+            }
+
+            // Reset neighbors and enemies for diagonal check
+            neighbors = 0; enemies = 0;
+
+            // Check diagonals if it is on the diagonal
+            if(isOnDiagonal){
+                // Do first diagonal (Ascending)
+                if(diagonalStart == -1 || diagonalStart == 0){
+                    for(int w = 0; w <= 8; w += 4){
+                        if(grid[w] == getSymbol()) neighbors++;
+                        if(grid[w] == opponentSymbol) enemies++;
+                    }
+                }
+
+                // Add to temp winning lanes and reset values
+                if(neighbors == 1 && enemies == 0){
+                    tempWinningLines++;
+                }
+                neighbors = 0; enemies = 0;
+
+                // Do descending diagonal
+                if(diagonalStart == -1 || diagonalStart == 2){
+                    for(int z = 2; z <= 6; z += 2){
+                        if(grid[z] == getSymbol()) neighbors++;
+                        if(grid[z] == opponentSymbol) enemies++;
+                    }
+                }
+
+                // Add to temp winning lanes
+                if(neighbors == 1 && enemies == 0){
+                    tempWinningLines++;
+                }
+            }
+
+            // Otherwise just continue on
+
+            // Then check if temp winning lines from this square are greater than current max, if so replace winning
+            // max and change move index to this square
+            if(tempWinningLines > mostWinningLines){
+                mostWinningLines = tempWinningLines;
+                moveIndex = i + 1;
+            }
+        }
+        // If you go through entire grid and find nothing, move index will be -1 still
+    }
 
 }

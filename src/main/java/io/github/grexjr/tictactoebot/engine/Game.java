@@ -22,7 +22,19 @@ public class Game {
         this.input = new StdIn();
         // Randomize who gets what symbol & what bot
         int rand = new Random().nextInt(0,4);
-        switch(rand){
+
+        // FOR NOW: just always heuristicsbot
+        boolean player = new Random().nextBoolean();
+
+        if(player){
+            players[0] = new Player('X');
+            players[1] = new HeuristicsBot('O');
+        } else {
+            players[1] = new Player('O');
+            players[0] = new HeuristicsBot('X');
+        }
+
+        /*switch(rand){
             case 0 -> {
                 players[0] = new Player('X');
                 players[1] = new RandomBot('O');
@@ -51,7 +63,7 @@ public class Game {
                     System.out.println("Heuristics Bot!");
                 }
             }
-        }
+        }*/
 
         isGameOver = false;
         whoWon = ' ';
