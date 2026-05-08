@@ -47,9 +47,36 @@ evaluation.
         </p>
 </ul>
 <h5> BOT: </h5>
-<p>
-Not yet implemented.
-</p>
+<ul>
+    <h6> RandomBot: </h6>
+            <p>
+            This is a bot that chooses random un-occupied spaces on the board and moves there. Very simple.
+            </p>
+    <h6> HeuristicsBot: </h6>
+            <p>
+            This bot uses specified Tic-Tac-Toe heuristics to make the semi-most optimal move in most circumstances. It has
+            methods that deal with the early game, finding lines that allow forking, and blocking the opponent as well as
+            immediately going for the win when it can. It is not perfect, but it wins very handily against the random bot.
+            </p>
+    <h6> Mini-MaxBot: </h6>
+            <p>
+            Not yet implemented.
+            </p>
+</ul>
+<h5> Testing: </h5>
+<ul>
+    <h6> Unit Testing: </h6>
+    <p>
+    Tests board creation and initialization, game win and draw checks. Rest not yet implemented, but aiming for 100%
+    code coverage.
+    </p>
+    <h6> Simulation Testing: </h6>
+    <p>
+    Various tests to test the efficacy of bots. All of the HeuristicsBot models are involved and tested against the
+    RandomBot, and some against the previous iteration of HeuristicBot. Gives an overview of wins, losses, and winrate.
+    Outputs to a file for archival purposes.
+    </p>
+</ul>
 <h5> Install/Build: </h5>
 <ul>
     <h6> Installation Specifics: </h6>
