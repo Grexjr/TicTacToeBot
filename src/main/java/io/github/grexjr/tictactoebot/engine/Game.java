@@ -1,5 +1,11 @@
 package io.github.grexjr.tictactoebot.engine;
 
+import io.github.grexjr.tictactoebot.bot.Bot;
+import io.github.grexjr.tictactoebot.bot.HeuristicsBot;
+import io.github.grexjr.tictactoebot.bot.RandomBot;
+
+import java.util.Random;
+
 public class Game {
 
     private Board gameBoard;
@@ -8,24 +14,81 @@ public class Game {
 
     boolean isGameOver;
     char whoWon;
+    int turnNum;
 
 
-    public Game(){
+    public Game(boolean debug){
         this.gameBoard = new Board();
         this.players = new Player[2];
         this.input = new StdIn();
-        players[0] = new Player('X');
-        players[1] = new Player('O');
+        // Randomize who gets what symbol & what bot
+        int rand = new Random().nextInt(0,4);
+
+        // FOR NOW: just always heuristicsbot
+        boolean player = new Random().nextBoolean();
+
+        if(player){
+            players[0] = new Player('X');
+            players[1] = new HeuristicsBot('O');
+        } else {
+            players[1] = new Player('O');
+            players[0] = new HeuristicsBot('X');
+        }
+
+        /*switch(rand){
+            case 0 -> {
+                players[0] = new Player('X');
+                players[1] = new RandomBot('O');
+                if(debug){
+                    System.out.println("Random bot!");
+                }
+            }
+            case 1 -> {
+                players[1] = new Player('O');
+                players[0] = new RandomBot('X');
+                if(debug){
+                    System.out.println("Random bot!");
+                }
+            }
+            case 2 -> {
+                players[0] = new Player('X');
+                players[1] = new HeuristicsBot('O');
+                if(debug){
+                    System.out.println("Heuristics Bot!");
+                }
+            }
+            case 3 -> {
+                players[1] = new Player('O');
+                players[0] = new HeuristicsBot('X');
+                if(debug){
+                    System.out.println("Heuristics Bot!");
+                }
+            }
+        }*/
 
         isGameOver = false;
         whoWon = ' ';
+        turnNum = 0;
+    }
+
+    // Mainly for testing to test bots against each other
+    public Game(Player player1, Player player2){
+        this(false);
+        players[0] = player1;
+        players[1] = player2;
     }
 
     /// Mainly for testing
     public Game(Board board){
-        this();
+        this(false);
         this.gameBoard = board;
     }
+
+    public boolean isGameOver() { return isGameOver; }
+
+    public int getTurnNum() { return turnNum; }
+
+    public char getWhoWon() { return whoWon; }
 
     public void setGameBoard(Board board) { gameBoard = board; }
 
@@ -106,29 +169,46 @@ public class Game {
         //TODO: Maybe instead of caller deciding, we have a check here if the grid space is a blank space
     }
 
-    public void runGame(){
+    /**
+     * Runs the game.
+     * @param isSilent True for print statements, false for none. Useful for testing.
+     */
+    public void runGame(boolean isSilent){
 
         while(!isGameOver){
 
             for(Player p : players){
-                gameBoard.printGrid();
-                System.out.println();
-                System.out.println(p.getSymbol() + "'s turn!");
+                Player opponent = null;
+                if(p == players[0]) opponent = players[1];
+                if(p == players[1]) opponent = players[0];
+
+                if(!isSilent){
+                    gameBoard.printGrid();
+                    System.out.println();
+                    System.out.println(p.getSymbol() + "'s turn!");
+                }
 
                 do {
+                    if(p instanceof Bot) continue;
                     System.out.print("Input a square from 1-9 (numbered from top left) -> ");
-                } while (!p.playTurn(gameBoard, input.readInt() - 1));
+                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input, opponent,turnNum) - 1));
+
+                turnNum++;
 
                 whoWon = checkWin();
                 if(whoWon != 'u' && whoWon != ' '){
-                    System.out.println(whoWon + " has won!");
-                    gameBoard.printGrid();
+                    if(!isSilent){
+                        System.out.println(whoWon + " has won!");
+                        gameBoard.printGrid();
+                    }
                     isGameOver = true;
                     break;
                 }
                 if (whoWon == 'u'){
-                    System.out.println("Game is a draw!");
-                    gameBoard.printGrid();
+                    if(!isSilent){
+                        System.out.println("Game is a draw!");
+                        gameBoard.printGrid();
+                    }
                     isGameOver = true;
                     break;
                 } // else do nothing and continue

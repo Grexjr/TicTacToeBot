@@ -2,17 +2,23 @@ package io.github.grexjr.tictactoebot.engine;
 
 public class Player {
 
-    private final char symbol;
+    private char symbol;
     private boolean isTurn;
+    protected String name;
 
     public Player(char symbol){
+        this.name = "Player";
         this.symbol = symbol;
         this.isTurn = false;
     }
 
     public char getSymbol() { return symbol; }
 
+    public String getName() { return name; }
+
     public boolean isTurn() { return isTurn; }
+
+    public void setSymbol(char symbol) { this.symbol = symbol; }
 
     public void setTurn(boolean value) { this.isTurn = value; }
 
@@ -36,6 +42,10 @@ public class Player {
         // If validation successful, then change square and return true for successful player turn
         board.changeSquare(index,symbol);
         return true;
+    }
+
+    public int getInput(Board board, StdIn inputter, Player opponent, int turnNum){
+        return inputter.readInt();
     }
 
 }

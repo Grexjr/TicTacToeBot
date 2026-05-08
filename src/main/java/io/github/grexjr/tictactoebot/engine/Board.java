@@ -23,6 +23,13 @@ public class Board {
         return grid;
     }
 
+    public boolean isEmpty(){
+        for (char c : grid) {
+            if (c != ' ') return false;
+        }
+        return true;
+    }
+
     /**
      * <p>Prints the 3x3 board to the screen.</p>
      * <p>~(3 + 9) = ~12 => O(1) runtime [known array length ahead of time].</p>
