@@ -6,10 +6,7 @@ import io.github.grexjr.tictactoebot.bot.RandomBot;
 import io.github.grexjr.tictactoebot.engine.Game;
 import io.github.grexjr.tictactoebot.engine.Board;
 import io.github.grexjr.tictactoebot.engine.StdIn;
-import io.github.grexjr.tictactoebot.testbots.HeuristicsBotCheckBlock;
-import io.github.grexjr.tictactoebot.testbots.HeuristicsBotCheckWin;
-import io.github.grexjr.tictactoebot.testbots.HeuristicsBotWinningLanes;
-import io.github.grexjr.tictactoebot.testbots.RandomBotTest;
+import io.github.grexjr.tictactoebot.testbots.*;
 import org.junit.jupiter.api.*;
 
 import java.util.Random;
@@ -91,15 +88,15 @@ public class MainTest {
         HeuristicsBot h_bot2 = new HeuristicsBot('o');
         // Run it 100 times to make sure its not just random
         for(int i = 0; i < 100; i++){
-            int botResult = h_bot1.getInput(board1, dummy_input,new RandomBot('-'));
+            int botResult = h_bot1.getInput(board1, dummy_input,new RandomBot('-'),10);
             assertEquals(3, botResult);
         }
         for(int i = 0; i < 100; i++){
-            int botResult = h_bot2.getInput(board2, dummy_input,new RandomBot('-'));
+            int botResult = h_bot2.getInput(board2, dummy_input,new RandomBot('-'),10);
             assertEquals(8, botResult);
         }
         for(int i = 0; i < 100; i++){
-            int botResult = h_bot1.getInput(board3, dummy_input,new RandomBot('-'));
+            int botResult = h_bot1.getInput(board3, dummy_input,new RandomBot('-'),10);
             assertEquals(5, botResult);
         }
     }
@@ -159,18 +156,33 @@ public class MainTest {
     }
 
     @Test
-    public void testWinLanesVersusCheckBlock(){
-        String fileName = "hBot_lanes_v_hBot_block";
-        String testHeader = "HEURISTICS_LANES_VERSUS_BLOCK";
-        HeuristicsBotWinningLanes hBotWL = new HeuristicsBotWinningLanes('x');
-        HeuristicsBotCheckBlock hBotCB = new HeuristicsBotCheckBlock('o');
+    public void testHeuristicsFinalVersusRandom(){
+        String fileName = "hBot_final_v_rBot";
+        String testHeader = "HEURISTICS_FINAL_VERSUS_RANDOM";
+        HeuristicsBotFINAL hBotF = new HeuristicsBotFINAL('x');
+        RandomBotTest rBot = new RandomBotTest('o');
         int iterations = 100000;
-        double expectedWinRate = 55;
+        double expectedWinRate = 85;
 
-        // Fail because not blocking other player's accidental forking
-        double testResult = runVersusTest(hBotWL,hBotCB,iterations,fileName,testHeader);
+        double testResult = runVersusTest(hBotF,rBot,iterations,fileName,testHeader);
 
         assertTrue(testResult >= expectedWinRate);
     }
+
+    @Test
+    public void testHeuristicsFinalVersusHeuristicsWL(){
+        String fileName = "hBot_final_v_hBot_lanes";
+        String testHeader = "HEURISTICS_FINAL_VERSUS_HEURISTICS_WINNING_LANES";
+        HeuristicsBotWinningLanes hBotWL = new HeuristicsBotWinningLanes('x');
+        HeuristicsBotFINAL hBotF = new HeuristicsBotFINAL('o');
+        int iterations = 100000;
+        double expectedWinRate = 30;
+
+        double testResult = runVersusTest(hBotF,hBotWL,iterations,fileName,testHeader);
+
+        assertTrue(testResult >= expectedWinRate);
+    }
+
+
 
 }

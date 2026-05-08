@@ -44,7 +44,7 @@ public class Player {
         return true;
     }
 
-    public int getInput(Board board, StdIn inputter, Player opponent){
+    public int getInput(Board board, StdIn inputter, Player opponent, int turnNum){
         return inputter.readInt();
     }
 

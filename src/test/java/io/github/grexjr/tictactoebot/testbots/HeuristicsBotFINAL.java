@@ -1,12 +1,13 @@
-package io.github.grexjr.tictactoebot.bot;
+package io.github.grexjr.tictactoebot.testbots;
 
+import io.github.grexjr.tictactoebot.bot.Bot;
 import io.github.grexjr.tictactoebot.engine.Board;
 import io.github.grexjr.tictactoebot.engine.Player;
 import io.github.grexjr.tictactoebot.engine.StdIn;
 
 import java.util.Random;
 
-public class HeuristicsBot extends Bot {
+public class HeuristicsBotFINAL extends Bot {
 
     // All rows, diagonals, columns add to 15
     // Use this for getting the values from board indices
@@ -17,7 +18,7 @@ public class HeuristicsBot extends Bot {
     private int moveIndex;
 
     // ### A bot that uses heuristics to try and win (or draw) the game of tic-tac-toe
-    public HeuristicsBot(char symbol){
+    public HeuristicsBotFINAL(char symbol){
         super(symbol);
         this.name = "HeuristicsBot";
         moveIndex = -1;

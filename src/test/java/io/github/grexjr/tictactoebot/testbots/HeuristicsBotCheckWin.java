@@ -54,7 +54,7 @@ public class HeuristicsBotCheckWin extends Bot {
     }
 
     @Override
-    public int getInput(Board board, StdIn input, Player opponent){
+    public int getInput(Board board, StdIn input, Player opponent, int turnNum){
         return doHeuristicsBrain(board);
     }
 

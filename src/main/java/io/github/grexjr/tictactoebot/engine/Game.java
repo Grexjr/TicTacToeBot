@@ -14,6 +14,7 @@ public class Game {
 
     boolean isGameOver;
     char whoWon;
+    int turnNum;
 
 
     public Game(boolean debug){
@@ -67,6 +68,7 @@ public class Game {
 
         isGameOver = false;
         whoWon = ' ';
+        turnNum = 0;
     }
 
     // Mainly for testing to test bots against each other
@@ -83,6 +85,8 @@ public class Game {
     }
 
     public boolean isGameOver() { return isGameOver; }
+
+    public int getTurnNum() { return turnNum; }
 
     public char getWhoWon() { return whoWon; }
 
@@ -187,7 +191,9 @@ public class Game {
                 do {
                     if(p instanceof Bot) continue;
                     System.out.print("Input a square from 1-9 (numbered from top left) -> ");
-                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input, opponent) - 1));
+                } while (!p.playTurn(gameBoard, p.getInput(gameBoard, input, opponent,turnNum) - 1));
+
+                turnNum++;
 
                 whoWon = checkWin();
                 if(whoWon != 'u' && whoWon != ' '){
